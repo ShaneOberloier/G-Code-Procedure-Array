@@ -1,0 +1,173 @@
+<!--
+This code was designed by Shane Oberloier (voltfolio.com) in association with MOST research group
+-->
+
+<html>
+    <head>
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-72513791-1', 'auto');
+          ga('send', 'pageview');
+        </script>
+        <script>
+            function cellClicked(thing){
+                thing.select();
+            }
+            function generateGCode(){
+                var Unit_X, Unit_Y, Unit_Z;
+                var Delta_X, Delta_Y, Delta_Z;
+                var Extrusion;
+                Unit_X = document.getElementById("Unit_X").value;               //Size of steps in the X direction
+                Unit_Y = document.getElementById("Unit_Y").value;               //Size of steps in the Y direction
+                Unit_Z = document.getElementById("Unit_Z").value;               //Size of steps in the Z direction
+                Delta_X = document.getElementById("Delta_X").value;             //How many steps in the X direction
+                Delta_Y = document.getElementById("Delta_Y").value;             //How many steps in the Y direction
+                Delta_Z = document.getElementById("Delta_Z").value;             //How many steps in the Z direction
+                Extrusion = document.getElementById("Extrusion").value;         //How much to extrude during movement
+                Travel_Z = document.getElementById("ZTravel").value;            //How heigh to move when going to new Y-row
+                
+                document.getElementById("OutputGCode").value = "G91 ;Relative Dimensioning\n"; //It is likely that you will want to execute at the current extruder position
+                var i, j, k;
+                for(i = 0; i < Unit_Z ; i++){
+                    for(j = 0; j < Unit_Y ; j++){
+                        for(k = 0; k < Unit_X ; k++){
+                            //document.getElementById("OutputGCode").value += "G1" + " X" + k*Delta_X + " Y" + j*Delta_Y + " Z" + i*Delta_Z + " E" + Extrusion + "\n"; //Go to the next location
+                            document.getElementById("OutputGCode").value += document.getElementById("Procedure").value + "\n"; //Load all of the contents from the procedure text area, and place it here
+                            if (k < Unit_X -1){
+                                if (Number(Extrusion) == Number(0)){ //Just to make this compatable with CNCs that might not recognize "E"
+                                    document.getElementById("OutputGCode").value += "G1" + " X" + Delta_X + "\n"; //Step in X
+                                }
+                                else{
+                                    document.getElementById("OutputGCode").value += "G1" + " X" + Delta_X + " E" + Extrusion + "\n"; //Step in X, Perform extrusion
+                                }
+                            }
+                        }
+                        if (j < Unit_Y -1){
+                            if (Travel_Z != 0){//Don't waste code space if Z is nothing.
+                                document.getElementById("OutputGCode").value += "G1" + " Z" + Travel_Z + "\n"; //Step up Z
+                            }
+                            document.getElementById("OutputGCode").value += "G1" + " Y" + Delta_Y + " X" + (-1*Delta_X*Unit_X + Number(Delta_X)) + "\n"; //Step in Y, Go back to X=0
+                            if (Travel_Z != 0){//Don't waste code space if Z is nothing.
+                                document.getElementById("OutputGCode").value += "G1" + " Z" + (-1 * Travel_Z) + "\n"; //Step down Z
+                            }
+                        }
+                    }
+                    if (i < Unit_Z -1){
+                        if (Travel_Z != 0){//Don't waste code space if Z is nothing.
+                                document.getElementById("OutputGCode").value += "G1" + " Z" + Travel_Z + "\n"; //Step up Z
+                            }
+                        document.getElementById("OutputGCode").value += "G1" + " Z" + Delta_Z + " Y" + (-1*Delta_Y*Unit_Y + Number(Delta_Y)) + " X" + (-1*Delta_X*Unit_X + Number(Delta_X)) + "\n"; //Step in Z Go back to X=0, Y=0
+                        if (Travel_Z != 0){//Don't waste code space if Z is nothing.
+                                document.getElementById("OutputGCode").value += "G1" + " Z" + (-1 * Travel_Z) + "\n"; //Step down Z
+                            }
+                    }
+                }
+            }
+        </script>
+        <style>
+            input[type="text"] {
+                 width: 40%; 
+                 box-sizing: border-box;
+                 -webkit-box-sizing:border-box;
+                 -moz-box-sizing: border-box;
+            }
+            textarea {
+                overflow-y: scroll;
+                height: 150px;
+                width: 95%;
+                /*resize: none; /* Remove this if you want the user to resize the textarea */
+            }
+        </style>
+    </head>
+    <body bgcolor="#DDDDDD">
+
+        <h1><a href="http://www.voltfolio.com">Voltfolio</a> G-Code Procedure Array</h1>
+
+        
+        
+        <table width="75%" border="0" align="center">
+            <tr>
+                <td align="center">
+                    <p align="right"><b>X Units:</b>
+                    <input type = "text" id ="Unit_X" name = "Unit_X" value = "1" width = "100%"></p>
+                </td>
+                <td align="center">
+                    <p align="right"><b>X Delta:</b>
+                    <input type = "text" id ="Delta_X" name = "Delta_X" value = "1" width = "100%"></p>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <p align="right"><b>Y Units:</b>
+                    <input type = "text" id ="Unit_Y" name = "Unit_Y" value = "1" width = "100%"></p>
+                </td>
+                <td align="center">
+                    <p align="right"><b>Y Delta:</b>
+                    <input type = "text" id ="Delta_Y" name = "Delta_Y" value = "1" width = "100%"></p>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <p align="right"><b>Z Units:</b>
+                    <input type = "text" id ="Unit_Z" name = "Unit_Z" value = "1" width = "100%"></p>
+                </td>
+                <td align="center">
+                    <p align="right"><b>Z Delta:</b>
+                    <input type = "text" id ="Delta_Z" name = "Delta_Z" value = "1" width = "100%"></p>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <p align="center"></p>
+                </td>
+                <td align="center">
+                    <p align="right"><b>Z Travel Height:</b>
+                    <input type = "text" id ="ZTravel" name = "ZTravel" value = "1" width = "100%"></p>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <p align="center"></p>
+                </td>
+                <td align="center">
+                    <p align="right"><b>Extrusion During Transition:</b>
+                    <input type = "text" id ="Extrusion" name = "Extrusion" value = "0" width = "100%"></p>
+                </td>
+            </tr>
+        </table>
+        <p></p>
+        <table width="100%" border="0">
+            <tr>
+                <td align="center">
+                    <p align="center"><b>G-Code Procedure</b></p>
+                    <textarea onClick="" name ="Procedure" id="Procedure" width="75%" height="100px"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <p align="center"><b>Output</b></p>
+                    <textarea onClick="cellClicked(this);" name ="OutputGCode" id="OutputGCode" width="75%" height="100px"></textarea>
+                </td>
+            </tr>
+        </table>
+        <button type="generate" onClick="generateGCode();">Generate G-Code</button>
+        
+        <p align="center" style="font-size:75%;"> Creative Commons Shane Oberloier 2017</p>
+        <p align="center">
+            <script type="text/javascript">
+    google_ad_client = "ca-pub-8421178213275151";
+    google_ad_slot = "5973467029";
+    google_ad_width = 728;
+    google_ad_height = 90;
+</script>
+<!-- Utility Ad -->
+<script type="text/javascript"
+src="//pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+        </p>
+    </body>
+</html>
